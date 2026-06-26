@@ -42,11 +42,11 @@ struct IMap
 	map_equal_fn equal;
 };
 
-internal IMap  IMapAlloc(Arena* arena, U64 cap, U64 key_size, U64 value_size, map_hash_fn hash, map_equal_fn equal);
-internal void  IMapInsert(Arena* arena, IMap* map, void* key, void* value);
-internal B32   IMapRemove(IMap* map, void* key);
-internal void* IMapLookup(IMap* map, void* key);
-internal void  IMapResize(Arena* arena, IMap* map, U64 new_cap);
-internal void  IMapClear(IMap* map);
+internal IMap  MapAlloc(Arena* arena, U64 cap, U64 key_size, U64 value_size, map_hash_fn hash, map_equal_fn equal);
+internal void  MapInsert(Arena* arena, IMap* map, void* key, void* value);
+internal B32   MapRemove(IMap* map, void* key);
+internal void* MapLookup(IMap* map, void* key);
+internal void  MapResize(Arena* arena, IMap* map, U64 new_cap);
+internal void  MapClear(IMap* map);
 
 #endif // BASE_HASHMAP_H

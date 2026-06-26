@@ -1,9 +1,7 @@
-#include "base/base_hash.h"
-#include "base/base_hashmap.h"
 #include "base/base_include.h"
-#include "base/base_include.c"
-#include "base/base_string.h"
-#include "base/base_thread_context.h"
+#include "base/base_typedefs.h"
+
+#include "cglm/cglm.h"
 
 typedef struct Str8IntMap Str8IntMap;
 struct Str8IntMap
@@ -28,6 +26,62 @@ internal Str8IntMap Str8IntMapAlloc(Arena* arena, U64 cap)
 {
 	IMap base = IMapAlloc(arena, cap, sizeof(String8), sizeof(S32), String8Hash, String8Equal);
 	return (Str8IntMap){.base = base};
+}
+
+typedef U32 EntityKind;
+enum
+{
+	EntityKind_Transformable   = Bit(1),
+	EntityKind_GizmoSelectable = Bit(2),
+	EntityKind_Light		   = Bit(3),
+	EntityKind_Static		   = Bit(4),
+	EntityKind_Drawable		   = Bit(5),
+	EntityKind_Named		   = Bit(6),
+};
+
+typedef struct Entity Entity;
+struct Entity
+{
+	EntityKind kind;
+
+	struct MeshComponent*	mesh;
+	struct Transform*		transform;
+	struct GlobalTransform* global_transform;
+	struct Name*			name;
+	struct LightData*		light;
+};
+
+typedef struct EntityList EntityList;
+struct EntityList
+{
+	Entity* v;
+	U64		count;
+};
+
+void MoveMentSystem(EntityList list)
+{
+	for
+		EachIndex(i, list.count)
+		{
+			Entity e = list.v[i];
+			if (e.kind & EntityKind_Transformable)
+			{
+				e.transform = 0; // move based on velocity
+			}
+		}
+}
+
+void DrawHierArchy(EntityList list)
+{
+	for
+		EachIndex(i, list.count)
+		{
+			Entity e = list.v[i];
+			if (e.kind & EntityKind_Named)
+			{
+				e.name = 0; // print
+			}
+		}
 }
 
 int main(void)
@@ -83,3 +137,5 @@ int main(void)
 		fprintf(stdout, "%*s: %d\n", Str8Varg(key_25), *value_25);
 	}
 }
+
+#include "base/base_include.c"

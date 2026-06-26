@@ -111,13 +111,13 @@ internal U64 Cstring32Length(U32 *c);
 ////////////////////////////////
 // String Constructors
 
-#define s(S) Str8Lit(S)
+#define s(S) Str8LitComp(S)
 
 #define Str8Lit(S) Str8((U8 *)(S), sizeof(S) - 1)
 #define Str8LitComp(S)                                                                                                 \
+	(String8)                                                                                                          \
 	{                                                                                                                  \
-		(U8 *)(S),                                                                                                     \
-		sizeof(S) - 1,                                                                                                 \
+		(U8 *)(S), sizeof(S) - 1,                                                                                      \
 	}
 #define Str8LitCstr(S) Str8((U8 *)(S), sizeof(S))
 #define Str8Varg(S) (int)((S).size), ((S).str)

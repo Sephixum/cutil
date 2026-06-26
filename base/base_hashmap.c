@@ -24,7 +24,7 @@ internal U64 NextPowerOfTwo(U64 x)
 // Internal helpers
 
 // Pop a slot from the free list
-internal MapSlot* IMapFreeListPop(IMap* map)
+internal MapSlot* MapFreeListPop(IMap* map)
 {
 	if (!map->free_list)
 		return 0;
@@ -35,7 +35,7 @@ internal MapSlot* IMapFreeListPop(IMap* map)
 }
 
 // Push a slot onto the free list
-internal void IMapFreeListPush(IMap* map, MapSlot* slot)
+internal void MapFreeListPush(IMap* map, MapSlot* slot)
 {
 	slot->next_free = map->free_list;
 	map->free_list	= slot;
@@ -43,7 +43,7 @@ internal void IMapFreeListPush(IMap* map, MapSlot* slot)
 
 // Write key+value into a slot, marking it live
 // key and value must already be arena-allocated
-internal void IMapSlotWrite(MapSlot* slot, void* key, void* value)
+internal void MapSlotWrite(MapSlot* slot, void* key, void* value)
 {
 	slot->key		= key;
 	slot->value		= value;
@@ -54,7 +54,7 @@ internal void IMapSlotWrite(MapSlot* slot, void* key, void* value)
 
 // Find the probe index for a key, or return -1 if not found
 // Returns the slot pointer directly for convenience
-internal MapSlot* IMapProbe(IMap* map, void* key)
+internal MapSlot* MapProbe(IMap* map, void* key)
 {
 	U64 hash = map->hash(key);
 	U64 idx	 = hash & (map->cap - 1);
@@ -63,17 +63,23 @@ internal MapSlot* IMapProbe(IMap* map, void* key)
 		U64		 slot_idx = (idx + step) & (map->cap - 1);
 		MapSlot* slot	  = &map->data[slot_idx];
 		if (slot->deleted)
+		{
 			continue; // tombstone, keep probing
+		}
 		if (!slot->occupied)
+		{
 			return 0; // empty, key not present
+		}
 		if (map->equal(slot->key, key))
+		{
 			return slot;
+		}
 	}
 	return 0;
 }
 
 // Re-slot an already-allocated entry into the current table (used by resize)
-internal void IMapReSlot(IMap* map, void* key, void* value)
+internal void MapReSlot(IMap* map, void* key, void* value)
 {
 	U64 hash = map->hash(key);
 	U64 idx	 = hash & (map->cap - 1);
@@ -84,7 +90,7 @@ internal void IMapReSlot(IMap* map, void* key, void* value)
 		// During resize the new table has no tombstones, so deleted won't appear
 		if (!slot->occupied)
 		{
-			IMapSlotWrite(slot, key, value);
+			MapSlotWrite(slot, key, value);
 			map->count++;
 			return;
 		}
@@ -95,7 +101,7 @@ internal void IMapReSlot(IMap* map, void* key, void* value)
 ////////////////////////
 // Alloc
 
-internal IMap IMapAlloc(Arena* arena, U64 cap, U64 key_size, U64 value_size, map_hash_fn hash, map_equal_fn equal)
+internal IMap MapAlloc(Arena* arena, U64 cap, U64 key_size, U64 value_size, map_hash_fn hash, map_equal_fn equal)
 {
 	cap			   = NextPowerOfTwo(cap);
 	MapSlot* slots = ArenaPushArray(arena, MapSlot, cap);
@@ -115,16 +121,16 @@ internal IMap IMapAlloc(Arena* arena, U64 cap, U64 key_size, U64 value_size, map
 ////////////////////////
 // Insert / Update
 
-internal void IMapInsert(Arena* arena, IMap* map, void* key, void* value)
+internal void MapInsert(Arena* arena, IMap* map, void* key, void* value)
 {
 	// Resize at 75% load
 	if (map->count * 4 > map->cap * 3)
 	{
-		IMapResize(arena, map, map->cap * 2);
+		MapResize(arena, map, map->cap * 2);
 	}
 
 	// Check if key already exists — update in place
-	MapSlot* existing = IMapProbe(map, key);
+	MapSlot* existing = MapProbe(map, key);
 	if (existing)
 	{
 		U8* new_value = ArenaPushArray(arena, U8, map->value_size);
@@ -140,10 +146,10 @@ internal void IMapInsert(Arena* arena, IMap* map, void* key, void* value)
 	MemoryCopy(value_storage, value, map->value_size);
 
 	// Try to reuse a free list slot first
-	MapSlot* reused = IMapFreeListPop(map);
+	MapSlot* reused = MapFreeListPop(map);
 	if (reused)
 	{
-		IMapSlotWrite(reused, key_storage, value_storage);
+		MapSlotWrite(reused, key_storage, value_storage);
 		map->count++;
 		return;
 	}
@@ -157,7 +163,7 @@ internal void IMapInsert(Arena* arena, IMap* map, void* key, void* value)
 		MapSlot* slot	  = &map->data[slot_idx];
 		if (!slot->occupied || slot->deleted)
 		{
-			IMapSlotWrite(slot, key_storage, value_storage);
+			MapSlotWrite(slot, key_storage, value_storage);
 			map->count++;
 			return;
 		}
@@ -169,16 +175,16 @@ internal void IMapInsert(Arena* arena, IMap* map, void* key, void* value)
 ////////////////////////
 // Lookup
 
-internal void* IMapLookup(IMap* map, void* key)
+internal void* MapLookup(IMap* map, void* key)
 {
-	MapSlot* slot = IMapProbe(map, key);
+	MapSlot* slot = MapProbe(map, key);
 	return slot ? slot->value : 0;
 }
 
 ////////////////////////
 // Remove
 
-internal B32 IMapRemove(IMap* map, void* key)
+internal B32 MapRemove(IMap* map, void* key)
 {
 	U64 hash = map->hash(key);
 	U64 idx	 = hash & (map->cap - 1);
@@ -201,7 +207,7 @@ internal B32 IMapRemove(IMap* map, void* key)
 			slot->occupied = 0;
 			slot->deleted  = 1;
 			map->count--;
-			IMapFreeListPush(map, slot); // Push onto free list so this slot can be reused
+			MapFreeListPush(map, slot); // Push onto free list so this slot can be reused
 			return 1;
 		}
 	}
@@ -211,7 +217,7 @@ internal B32 IMapRemove(IMap* map, void* key)
 ////////////////////////
 // Resize
 
-internal void IMapResize(Arena* arena, IMap* map, U64 new_cap)
+internal void MapResize(Arena* arena, IMap* map, U64 new_cap)
 {
 	new_cap = NextPowerOfTwo(new_cap);
 	if (new_cap <= map->cap)
@@ -234,7 +240,7 @@ internal void IMapResize(Arena* arena, IMap* map, U64 new_cap)
 		if (old_slot->occupied && !old_slot->deleted)
 		{
 			// Reuse existing arena pointers, no extra copies
-			IMapReSlot(map, old_slot->key, old_slot->value);
+			MapReSlot(map, old_slot->key, old_slot->value);
 		}
 	}
 }
@@ -242,7 +248,7 @@ internal void IMapResize(Arena* arena, IMap* map, U64 new_cap)
 ////////////////////////
 // Clear
 
-internal void IMapClear(IMap* map)
+internal void MapClear(IMap* map)
 {
 	MemoryZero(map->data, sizeof(MapSlot) * map->cap);
 	map->free_list = 0;
