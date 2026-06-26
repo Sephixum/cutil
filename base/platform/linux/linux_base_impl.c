@@ -2,7 +2,7 @@
 
 ///////////////////////////
 /// Memory
-#include "../../base/base_memory.h"
+#include "../../base_memory.h"
 
 internal void* MemoryReserve(U64 size)
 {
@@ -81,7 +81,7 @@ internal B32 MemoryCommitLarge(void* ptr, U64 size)
 
 ///////////////////////////
 /// System
-#include "../../base/base_system.h"
+#include "../../base_system.h"
 
 internal SystemInfo* GetSystemInfo(void)
 {

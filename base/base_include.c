@@ -6,7 +6,7 @@
 #include "base_hashmap.c"
 
 #if OS_LINUX
-#include "../linux/base/linux_base_impl.c"
+#include "platform/linux/linux_base_impl.c"
 #elif OS_WINDOWS
-#include "../win32/base/win32_base_impl.c"
+#include "platform/win32/win32_base_impl.c"
 #endif

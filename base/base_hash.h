@@ -22,4 +22,7 @@ internal U64 HashU32(U32 x);
 internal U64 HashU16(U16 x);
 internal U64 HashU8(U8 x);
 
+internal U64 HashF32(F32 x);
+internal U64 HashF64(F64 x);
+
 #endif // BASE_HASH_H

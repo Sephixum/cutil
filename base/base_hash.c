@@ -43,3 +43,13 @@ internal U64 HashU8(U8 x)
 {
 	return HashU64((U64)x);
 }
+
+internal U64 HashF32(F32 x)
+{
+	return HashBytes(&x, sizeof(x));
+}
+
+internal U64 HashF64(F64 x)
+{
+	return HashBytes(&x, sizeof(x));
+}

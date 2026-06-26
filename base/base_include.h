@@ -12,9 +12,9 @@
 #include "base_hashmap.h"
 
 #if OS_LINUX
-#include "../linux/base/linux_base_impl.h"
+#include "platform/linux/linux_base_impl.h"
 #elif OS_WINDOWS
-#include "../win32/base/win32_base_impl.h"
+#include "platform/win32/win32_base_impl.h"
 #endif
 
 #endif // BASE_INCLUDE_H
