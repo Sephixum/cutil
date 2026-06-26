@@ -1,5 +1,6 @@
 #include "base_thread_context.h"
 #include "base_arena.h"
+#include "base_core.h"
 #include "base_typedefs.h"
 #include <threads.h>
 
@@ -25,9 +26,26 @@ internal void ThreadContextSelect(ThreadContext* tctx)
 	thread_context_thread_local = tctx;
 }
 
+internal void ThreadContextSetName(ThreadContext* tctx, String8 name)
+{
+	U64 copy_size = name.size < 32 ? name.size : 31;
+	MemoryCopy(tctx->thread_name, name.str, copy_size);
+	tctx->thread_name_size = copy_size;
+}
+
+internal String8 ThreadContextGetName(ThreadContext* tctx)
+{
+	return Str8(tctx->thread_name, tctx->thread_name_size);
+}
+
 internal ThreadContext* ThreadContextSelected(void)
 {
 	return thread_context_thread_local;
+}
+
+internal String8 ThreadContextSelectedName(void)
+{
+	return ThreadContextGetName(ThreadContextSelected());
 }
 
 internal Arena* ThreadContextGetArenaScratch(Arena** conflicts, U64 count)

@@ -8,6 +8,8 @@
 #include "base_system.h"
 #include "base_thread_context.h"
 #include "base_string.h"
+#include "base_hash.h"
+#include "base_hashmap.h"
 
 #if OS_LINUX
 #include "../linux/base/linux_base_impl.h"

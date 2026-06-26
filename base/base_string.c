@@ -384,7 +384,7 @@ internal S64 S64FromStr8(String8 string, U32 radix)
 internal U32 U32FromStr8(String8 string, U32 radix)
 {
 	U64 x64 = U64FromStr8(string, radix);
-	assert(x64 <= max_U32);
+	AssertAlways(x64 <= max_U32);
 	U32 x32 = (U32)x64;
 	return x32;
 }
@@ -392,7 +392,7 @@ internal U32 U32FromStr8(String8 string, U32 radix)
 internal S32 S32FromStr8(String8 string, U32 radix)
 {
 	S64 x64 = S64FromStr8(string, radix);
-	assert(x64 <= max_S32);
+	AssertAlways(x64 <= max_S32);
 	S32 x32 = (S32)x64;
 	return x32;
 }
@@ -684,7 +684,6 @@ internal String8 Str8FromU64(Arena *arena, U64 u64, U32 radix, U8 min_digits, U8
 internal String8 Str8FromS64(Arena *arena, S64 s64, U32 radix, U8 min_digits, U8 digit_group_separator)
 {
 	String8 result = {0};
-	// TODO: preeeeetty sloppy...
 	if (s64 < 0)
 	{
 		Temp	scratch		 = ScratchBegin(&arena, 1);
@@ -811,7 +810,7 @@ internal void Str8ListConcatInPlace(String8List *list, String8List *to_push)
 internal String8Node *Str8ListPushAligner(Arena *arena, String8List *list, U64 min, U64 align)
 {
 	read_only local_persist U8 zeroes[64] = {0};
-	assert(IsPow2OrZero(align));
+	AssertAlways(IsPow2OrZero(align));
 	U64 pad = Max(min, AlignPadPow2(list->total_size, align));
 	if (pad < sizeof(zeroes))
 	{
@@ -849,7 +848,7 @@ internal String8Node *Str8ListPopFront(String8List *list)
 	if (list->node_count)
 	{
 		node = list->first;
-		assert(list->total_size >= list->first->string.size);
+		AssertAlways(list->total_size >= list->first->string.size);
 		list->node_count -= 1;
 		list->total_size -= list->first->string.size;
 		SLLQueuePop(list->first, list->last);
