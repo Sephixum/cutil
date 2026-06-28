@@ -179,11 +179,12 @@ internal String8 Str8FromBitsU32(Arena *arena, U32 x);
 internal String8 Str8FromBitsU64(Arena *arena, U64 x);
 internal String8 Str8FromU64(Arena *arena, U64 u64, U32 radix, U8 min_digits, U8 digit_group_separator);
 internal String8 Str8FromS64(Arena *arena, S64 s64, U32 radix, U8 min_digits, U8 digit_group_separator);
+internal String8 Str8FromF64(Arena *arena, F64);
 
 ////////////////////////////////
 // String <=> Float Conversions
 
-internal F64 F64FromString(String8 string);
+internal F64 F64FromStr8(String8 string);
 
 ////////////////////////////////
 // String Matching

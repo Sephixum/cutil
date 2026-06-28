@@ -1,3 +1,4 @@
+#include "base/base_core.h"
 #include "base/base_include.h"
 #include "base/base_typedefs.h"
 
@@ -24,7 +25,7 @@ internal B32 String8Equal(void* lhs, void* rhs)
 
 internal Str8IntMap Str8IntMapAlloc(Arena* arena, U64 cap)
 {
-	IMap base = IMapAlloc(arena, cap, sizeof(String8), sizeof(S32), String8Hash, String8Equal);
+	IMap base = MapAlloc(arena, cap, sizeof(String8), sizeof(S32), String8Hash, String8Equal);
 	return (Str8IntMap){.base = base};
 }
 
@@ -97,25 +98,25 @@ int main(void)
 	{
 		String8 key	  = Str8Lit("1");
 		int		value = 1;
-		IMapInsert(s.arena, &map.base, &key, &value);
+		MapInsert(s.arena, &map.base, &key, &value);
 	}
 
 	{
 		String8 key	  = Str8Lit("99");
 		int		value = 99;
-		IMapInsert(s.arena, &map.base, &key, &value);
+		MapInsert(s.arena, &map.base, &key, &value);
 	}
 
 	{
 		String8 key	  = Str8Lit("49");
 		int		value = 49;
-		IMapInsert(s.arena, &map.base, &key, &value);
+		MapInsert(s.arena, &map.base, &key, &value);
 	}
 
 	{
 		String8 key	  = Str8Lit("25");
 		int		value = 25;
-		IMapInsert(s.arena, &map.base, &key, &value);
+		MapInsert(s.arena, &map.base, &key, &value);
 	}
 
 	String8 key_25 = Str8Lit("25");
@@ -124,8 +125,8 @@ int main(void)
 	String8 key_1  = Str8Lit("1");
 	String8 key_29 = Str8Lit("29");
 
-	int* value_25 = IMapLookup(&map.base, &key_25);
-	int* value_29 = IMapLookup(&map.base, &key_29);
+	int* value_25 = MapLookup(&map.base, &key_25);
+	int* value_29 = MapLookup(&map.base, &key_29);
 
 	if (value_29)
 	{

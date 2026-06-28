@@ -698,7 +698,14 @@ internal String8 Str8FromS64(Arena *arena, S64 s64, U32 radix, U8 min_digits, U8
 	return result;
 }
 
-internal F64 F64FromString(String8 string)
+internal String8 Str8FromF64(Arena *arena, F64 x)
+{
+	U8 *buf	 = ArenaPushArray(arena, U8, 64);
+	U64 size = snprintf((char *)buf, 64, "%f", x);
+	return Str8(buf, size);
+}
+
+internal F64 F64FromStr8(String8 string)
 {
 	// TODO crappy implementation for now that just uses atof.
 	F64 result = 0;

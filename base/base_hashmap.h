@@ -29,6 +29,9 @@ struct MapSlot
 typedef U64 (*map_hash_fn)(void* key);
 typedef B32 (*map_equal_fn)(void* lhs, void* rhs);
 
+//////////////////////////////
+// Map with best case O(1) and
+// worst case O(n)
 typedef struct IMap IMap;
 struct IMap
 {

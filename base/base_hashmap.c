@@ -133,8 +133,16 @@ internal void MapInsert(Arena* arena, IMap* map, void* key, void* value)
 	MapSlot* existing = MapProbe(map, key);
 	if (existing)
 	{
+		// No need for new value to be allocated
+		// U8* new_value = ArenaPushArray(arena, U8, map->value_size);
+		// existing->value = new_value;
+		MemoryCopy(existing->value, value, map->value_size);
+		return;
+	}
+	if (!existing)
+	{
 		U8* new_value = ArenaPushArray(arena, U8, map->value_size);
-		MemoryCopy(new_value, value, map->value_size);
+		MemoryCopy(existing->value, value, map->value_size);
 		existing->value = new_value;
 		return;
 	}
