@@ -80,9 +80,9 @@ internal U64 Cstring8Length(U8 *c)
 		U8 *p = c;
 		while (*p != 0)
 		{
-			length = (U64)(p - c);
 			p += 1;
 		}
+		length = (U64)(p - c); // calculate once after loop
 	}
 	return length;
 }
@@ -95,9 +95,9 @@ internal U64 Cstring16Length(U16 *c)
 		U16 *p = c;
 		while (*p != 0)
 		{
-			length = (U64)(p - c);
 			p += 1;
 		}
+		length = (U64)(p - c);
 	}
 	return length;
 }
@@ -110,9 +110,9 @@ internal U64 Cstring32Length(U32 *c)
 		U32 *p = c;
 		while (*p != 0)
 		{
-			length = (U64)(p - c);
 			p += 1;
 		}
+		length = (U64)(p - c);
 	}
 	return length;
 }
@@ -1138,9 +1138,8 @@ internal String8Array Str8ArrayFromList(Arena *arena, String8List *list)
 
 internal String8Array Str8ArrayReserve(Arena *arena, U64 count)
 {
-	String8Array arr;
-	arr.count = 0;
-	arr.v	  = ArenaPushArray(arena, String8, count);
+	String8Array arr = {0};
+	arr.v			 = ArenaPushArray(arena, String8, count);
 	return arr;
 }
 
