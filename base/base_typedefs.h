@@ -169,7 +169,18 @@ typedef enum OperatingSystem
 
 global F32 pi32 = 3.1415926535897f;
 
-global F64 machine_epsilon64 = 4.94065645841247e-324;
+// ---- Machine epsilon (smallest x such that 1.0 + x != 1.0) ----
+#define F32_EPSILON 1.1920928955078125e-7f
+#define F64_EPSILON 2.2204460492503131e-16
+
+#define F32_MIN_SUBNORMAL 1.4012984643248171e-45f
+#define F64_MIN_SUBNORMAL 4.9406564584124654e-324
+
+#define F32_MIN_NORMAL 1.1754943508222875e-38f
+#define F64_MIN_NORMAL 2.2250738585072014e-308
+
+global F64 machine_epsilon64 = F64_EPSILON;
+global F32 machine_epsilon32 = F32_EPSILON;
 
 global U64 max_U64 = 0xffffffffffffffffull;
 global U32 max_U32 = 0xffffffff;
