@@ -4,6 +4,7 @@
 #include "base_memory.c"
 #include "base_hash.c"
 #include "base_hashmap.c"
+#include "base_math.c"
 
 #if OS_LINUX
 #include "platform/linux/linux_base_impl.c"

@@ -10,6 +10,7 @@
 #include "base_string.h"
 #include "base_hash.h"
 #include "base_hashmap.h"
+#include "base_math.h"
 
 #if OS_LINUX
 #include "platform/linux/linux_base_impl.h"
