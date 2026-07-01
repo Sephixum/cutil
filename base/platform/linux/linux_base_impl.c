@@ -3,6 +3,7 @@
 ///////////////////////////
 /// Memory
 #include "../../base_memory.h"
+#include <unistd.h>
 
 internal void* MemoryReserve(U64 size)
 {
@@ -94,7 +95,8 @@ internal SystemInfo* GetSystemInfo(void)
 		info.page_size				 = (U64)getpagesize();
 		info.allocation_granularity	 = info.page_size;
 		info.large_page_size		 = MB(2);
-		cached						 = 1;
+		gethostname(info.machine_name, ArrayCount(info.machine_name));
+		cached = 1;
 	}
 
 	return &info;
