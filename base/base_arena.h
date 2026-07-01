@@ -1,6 +1,7 @@
 #ifndef ARENA_H
 #define ARENA_H
 
+#include "base_core.h"
 #include "base_typedefs.h"
 
 #define ARENA_HEADER_SIZE 128
@@ -49,7 +50,7 @@ struct Arena
 	Arena* free_last;
 #endif // ARENA_FREE_LIST
 };
-static_assert(sizeof(Arena) <= ARENA_HEADER_SIZE, "Arena Header size is bigger than ARENA_HEADER_SIZE !!");
+StaticAssert(sizeof(Arena) <= ARENA_HEADER_SIZE, Arena_Header_size_is_bigger_than_ARENA_HEADER_SIZE);
 
 typedef struct Temp Temp;
 struct Temp
@@ -62,35 +63,33 @@ global U64		  arena_default_reserve_size = MB(64);
 global U64		  arena_default_commit_size	 = MB(64);
 global ArenaFlags arena_default_flags		 = 0;
 
-internal Arena* ArenaAlloc_(ArenaParams* params);
-#define ArenaAlloc(...)                                                                                                \
-	ArenaAlloc_(&(ArenaParams){.reserve_size		 = arena_default_reserve_size,                                     \
+internal Arena* Arena_Make_(ArenaParams* params);
+#define Arena_Make(...)                                                                                                \
+	Arena_Make_(&(ArenaParams){.reserve_size		 = arena_default_reserve_size,                                     \
 							   .commit_size			 = arena_default_commit_size,                                      \
 							   .flags				 = arena_default_flags,                                            \
 							   .allocation_site_file = __FILE__,                                                       \
 							   .allocation_site_line = __LINE__,                                                       \
 							   __VA_ARGS__})
 
-internal void ArenaRelease(Arena* arena);
+internal void Arena_Destroy(Arena* arena);
 
-internal void* ArenaPush(Arena* arena, U64 size, U64 align, B32 zero);
-internal U64   ArenaPos(Arena* arena);
-internal void  ArenaPopTo(Arena* arena, U64 pos);
+internal void* Arena_Push(Arena* arena, U64 size, U64 align, B32 zero);
+internal U64   Arena_Pos(Arena* arena);
+internal void  Arena_PopTo(Arena* arena, U64 pos);
 
-internal void ArenaClear(Arena* arena);
-internal void ArenaPop(Arena* arena, U64 amt);
+internal void Arena_Clear(Arena* arena);
+internal void Arena_Pop(Arena* arena, U64 amt);
 
-internal Temp ArenaTempBegin(Arena* arena);
-internal void ArenaTempEnd(Temp temp);
+internal Temp Arena_TempBegin(Arena* arena);
+internal void Arena_TempEnd(Temp temp);
 
-#define ArenaPushArrayNoZeroAligned(a, T, c, align) (T*)(ArenaPush((a), sizeof(T) * (c), (align), 0))
-#define ArenaPushArrayAligned(a, T, c, align) (T*)(ArenaPush((a), sizeof(T) * (c), (align), 1))
-#define ArenaPushArrayNoZero(a, T, c) ArenaPushArrayNoZeroAligned(a, T, c, Max(8, alignof(T)))
-#define ArenaPushArray(a, T, c) ArenaPushArrayAligned(a, T, c, Max(8, alignof(T)))
+#define Arena_PushArrayNoZeroAligned(a, T, c, align) (T*)(Arena_Push((a), sizeof(T) * (c), (align), 0))
+#define Arena_PushArrayAligned(a, T, c, align) (T*)(Arena_Push((a), sizeof(T) * (c), (align), 1))
+#define Arena_PushArrayNoZero(a, T, c) Arena_PushArrayNoZeroAligned(a, T, c, Max(8, alignof(T)))
+#define Arena_PushArray(a, T, c) Arena_PushArrayAligned(a, T, c, Max(8, alignof(T)))
 
-internal Temp ArenaGetScratch(Arena** conflicts, U64 conflict_count);
-#define ArenaReleaseScratch(t) ArenaTempEnd(t)
-
-internal void ArenaEnsureScratchAllocation(void);
+internal Temp Arena_GetScratch(Arena** conflicts, U64 conflict_count);
+#define Arena_ReleaseScratch(t) Arena_TempEnd(t)
 
 #endif // ARENA_H

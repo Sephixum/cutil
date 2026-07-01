@@ -14,16 +14,16 @@ struct ThreadContext
 	U64 thread_name_size;
 };
 
-internal ThreadContext* ThreadContextAlloc(void);
-internal void			ThreadContextRelease(ThreadContext* tctx);
-internal void			ThreadContextSelect(ThreadContext* tctx);
-internal void			ThreadContextSetName(ThreadContext* tctx, String8 name);
-internal String8		ThreadContextGetName(ThreadContext* tctx);
-internal ThreadContext* ThreadContextSelected(void);
-internal String8		ThreadContextSelectedName(void);
+internal ThreadContext* ThreadContext_Make(void);
+internal void			ThreadContext_Destroy(ThreadContext* tctx);
+internal void			ThreadContext_Select(ThreadContext* tctx);
+internal void			ThreadContext_SetName(ThreadContext* tctx, String8 name);
+internal String8		ThreadContext_GetName(ThreadContext* tctx);
+internal ThreadContext* ThreadContext_Selected(void);
+internal String8		ThreadContext_SelectedName(void);
 
-internal Arena* ThreadContextGetArenaScratch(Arena** conflicts, U64 count);
-#define ScratchBegin(conflicts, count) ArenaTempBegin(ThreadContextGetArenaScratch((conflicts), (count)))
-#define ScratchEnd(scratch) ArenaTempEnd(scratch)
+internal Arena* ThreadContext_GetArenaScratch(Arena** conflicts, U64 count);
+#define Scratch_Begin(conflicts, count) Arena_TempBegin(ThreadContextGetArenaScratch((conflicts), (count)))
+#define Scratch_End(scratch) Arena_TempEnd(scratch)
 
 #endif // BASE_THREAD_CONTEXT_H

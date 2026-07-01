@@ -4,7 +4,7 @@
 #include "base_system.h"
 #include "base_memory.h"
 
-internal Arena* ArenaAlloc_(ArenaParams* params)
+internal Arena* Arena_Make_(ArenaParams* params)
 {
 	U64 reserve_size = params->reserve_size;
 	U64 commit_size	 = params->commit_size;
@@ -55,7 +55,7 @@ internal Arena* ArenaAlloc_(ArenaParams* params)
 	return arena;
 }
 
-internal void ArenaRelease(Arena* arena)
+internal void Arena_Destroy(Arena* arena)
 {
 	for (Arena *n = arena->current, *prev = 0; n != 0; n = prev)
 	{
@@ -64,7 +64,7 @@ internal void ArenaRelease(Arena* arena)
 	}
 }
 
-internal void* ArenaPush(Arena* arena, U64 size, U64 align, B32 zero)
+internal void* Arena_Push(Arena* arena, U64 size, U64 align, B32 zero)
 {
 	Arena* current = arena->current;
 	U64	   pos_pre = AlignPow2(current->position, align);
@@ -111,11 +111,11 @@ internal void* ArenaPush(Arena* arena, U64 size, U64 align, B32 zero)
 				reserve_size = AlignPow2(size + ARENA_HEADER_SIZE, align);
 				commit_size	 = AlignPow2(size + ARENA_HEADER_SIZE, align);
 			}
-			new_block = ArenaAlloc(.reserve_size		 = reserve_size,
-								   .commit_size			 = commit_size,
-								   .flags				 = current->flags,
-								   .allocation_site_file = current->allocation_site_file,
-								   .allocation_site_line = current->allocation_site_line);
+			new_block = Arena_Alloc(.reserve_size		  = reserve_size,
+									.commit_size		  = commit_size,
+									.flags				  = current->flags,
+									.allocation_site_file = current->allocation_site_file,
+									.allocation_site_line = current->allocation_site_line);
 
 			size_to_zero = 0;
 		}
@@ -162,14 +162,14 @@ internal void* ArenaPush(Arena* arena, U64 size, U64 align, B32 zero)
 	return result;
 }
 
-internal U64 ArenaPos(Arena* arena)
+internal U64 Arena_Pos(Arena* arena)
 {
 	Arena* current = arena->current;
 	U64	   pos	   = current->base_position + current->position;
 	return pos;
 }
 
-internal void ArenaPopTo(Arena* arena, U64 pos)
+internal void Arena_PopTo(Arena* arena, U64 pos)
 {
 	U64	   big_pos = ClampBot(ARENA_HEADER_SIZE, pos);
 	Arena* current = arena->current;
@@ -195,36 +195,36 @@ internal void ArenaPopTo(Arena* arena, U64 pos)
 	current->position = new_pos;
 }
 
-internal void ArenaClear(Arena* arena)
+internal void Arena_Clear(Arena* arena)
 {
-	ArenaPopTo(arena, 0);
+	Arena_PopTo(arena, 0);
 }
 
-internal void ArenaPop(Arena* arena, U64 amt)
+internal void Arena_Pop(Arena* arena, U64 amt)
 {
-	U64 pos_old = ArenaPos(arena);
+	U64 pos_old = Arena_Pos(arena);
 	U64 pos_new = pos_old;
 	if (amt < pos_old)
 	{
 		pos_new = pos_old - amt;
 	}
-	ArenaPopTo(arena, pos_new);
+	Arena_PopTo(arena, pos_new);
 }
 
-internal Temp ArenaTempBegin(Arena* arena)
+internal Temp Arena_TempBegin(Arena* arena)
 {
-	U64 pos = ArenaPos(arena);
+	U64 pos = Arena_Pos(arena);
 	return (Temp){arena, pos};
 }
 
-internal void ArenaTempEnd(Temp temp)
+internal void Arena_TempEnd(Temp temp)
 {
-	ArenaPopTo(temp.arena, temp.pos);
+	Arena_PopTo(temp.arena, temp.pos);
 }
 
 global thread_local Arena* scratches[2] = {0};
 
-internal Temp ArenaGetScratch(Arena** conflicts, U64 conflict_count)
+internal Temp Arena_GetScratch(Arena** conflicts, U64 conflict_count)
 {
 	for (U64 i = 0; i < ArrayCount(scratches); ++i)
 	{
@@ -240,7 +240,7 @@ internal Temp ArenaGetScratch(Arena** conflicts, U64 conflict_count)
 
 		if (!is_conflicting)
 		{
-			return ArenaTempBegin(scratches[i]);
+			return Arena_TempBegin(scratches[i]);
 		}
 	}
 
