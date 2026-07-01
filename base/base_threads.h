@@ -6,156 +6,81 @@
 #include "base_string.h"
 
 ////////////////////////////////
-// Thread Types
-
+// Thread
 typedef struct Thread Thread;
 struct Thread
 {
 	U64 u64[1];
 };
-typedef void ThreadEntryPointFunctionType(void *p);
+typedef void* (*ThreadProc)(void* arg);
+
+internal Thread* Thread_Create(ThreadProc proc, void* arg);
+internal void	 Thread_Join(Thread* thread);
+internal void	 Thread_Detach(Thread* thread);
+internal void	 Thread_Exit(void* retval);
+internal Thread* Thread_Current(void);
+internal void	 Thread_SetName(String8 name);
+internal void	 Thread_SetNameF(char* fmt, ...);
 
 ////////////////////////////////
-//~ rjf: Synchronization Primitive Types
-
+// Mutex
 typedef struct Mutex Mutex;
 struct Mutex
 {
 	U64 u64[1];
 };
 
-typedef struct RWMutex RWMutex;
-struct RWMutex
-{
-	U64 u64[1];
-};
+internal Mutex* Mutex_Create(void);
+internal void	Mutex_Destory(Mutex* m);
+internal void	Mutex_Lock(Mutex* m);
+internal void	Mutex_Unlock(Mutex* m);
 
+////////////////////////////////
+// CondVar
 typedef struct CondVar CondVar;
 struct CondVar
 {
 	U64 u64[1];
 };
 
-typedef struct Semaphore Semaphore;
-struct Semaphore
-{
-	U64 u64[1];
-};
+internal CondVar* CondVar_Create(void);
+internal void	  CondVar_Destroy(CondVar* cv);
+internal void	  CondVar_Wait(CondVar* cv, Mutex* m);
+internal void	  CondVar_Signal(CondVar* cv);
+internal void	  CondVar_Broadcast(CondVar* cv);
 
-typedef struct Barrier Barrier;
-struct Barrier
-{
-	U64 u64[1];
-};
+///////////////////////////
+// Atomic operations
+internal U32  Atomic_LoadU32(volatile U32* ptr);
+internal void Atomic_StoreU32(volatile U32* ptr, U32 val);
+internal U32  Atomic_ExchangeU32(volatile U32* ptr, U32 val);
+internal B32  Atomic_CasU32(volatile U32* ptr, U32 expected, U32 desired);
+internal U32  Atomic_FetchAddU32(volatile U32* ptr, U32 val);
+internal U32  Atomic_FetchSubU32(volatile U32* ptr, U32 val);
 
-////////////////////////////////
-//~ rjf: Table Stripes
+internal U64  Atomic_LoadU64(volatile U64* ptr);
+internal void Atomic_StoreU64(volatile U64* ptr, U64 val);
+internal U64  Atomic_ExchangeU64(volatile U64* ptr, U64 val);
+internal B32  Atomic_CasU64(volatile U64* ptr, U64 expected, U64 desired);
+internal U64  Atomic_FetchAddU64(volatile U64* ptr, U64 val);
+internal U64  Atomic_FetchSubU64(volatile U64* ptr, U64 val);
 
-typedef struct Stripe Stripe;
-struct Stripe
-{
-	Arena  *arena;
-	RWMutex rw_mutex;
-	CondVar cv;
-	void   *free;
-};
+// ---- Pointers (wrappers) ----
+#define Atomic_CasPtr(ptr, expected, desired) Atomic_CasU64((volatile U64*)(ptr), (U64)(expected), (U64)(desired))
+#define Atomic_ExchangePtr(ptr, desired) (void*)Atomic_ExchangeU64((volatile U64*)(ptr), (U64)(desired))
 
-typedef struct StripeArray StripeArray;
-struct StripeArray
-{
-	Stripe *v;
-	U64		count;
-};
+// ---- Floats (Load, Store, Exchange, CAS only. NO FETCH_ADD) ----
+internal F32  Atomic_LoadF32(volatile F32* ptr);
+internal void Atomic_StoreF32(volatile F32* ptr, F32 val);
+internal F32  Atomic_ExchangeF32(volatile F32* ptr, F32 val);
+internal B32  Atomic_CasF32(volatile F32* ptr, F32 expected, F32 desired);
 
-////////////////////////////////
-// Table Stripe Functions
+internal F64  Atomic_LoadF64(volatile F64* ptr);
+internal void Atomic_StoreF64(volatile F64* ptr, F64 val);
+internal F64  Atomic_ExchangeF64(volatile F64* ptr, F64 val);
+internal B32  Atomic_CasF64(volatile F64* ptr, F64 expected, F64 desired);
 
-internal StripeArray StripeArrayAlloc(Arena *arena);
-internal void		 StripeArrayRelease(StripeArray *stripes);
-internal Stripe		*StripeFromSlotIndex(StripeArray *stripes, U64 slot_idx);
-
-////////////////////////////////
-// Thread Info Helpers
-
-internal void SetThreadName(String8 string);
-internal void SetThreadNameF(char *fmt, ...);
-
-////////////////////////////////
-// @per_os_impl Current Thread Info
-
-internal U32  ThreadID(void);
-internal void SetPlatformthreadName(String8 name);
-
-////////////////////////////////
-// @per_os_impl Thread Functions
-
-internal Thread ThreadLaunch(ThreadEntryPointFunctionType *f, void *p);
-internal B32	ThreadJoin(Thread thread, U64 endt_us);
-internal void	ThreadDetach(Thread thread);
-
-////////////////////////////////
-// @per_os_impl Synchronization Primitive Functions
-
-// recursive mutexes
-internal Mutex MutexAlloc(void);
-internal void  MutexRelease(Mutex mutex);
-internal void  MutexTake(Mutex mutex);
-internal void  MutexDrop(Mutex mutex);
-
-// reader/writer mutexes
-internal RWMutex RWMutexAlloc(void);
-internal void	 RWMutexRelease(RWMutex mutex);
-internal void	 RWMutexTake(RWMutex mutex, B32 write_mode);
-internal void	 RWMutexDrop(RWMutex mutex, B32 write_mode);
-#define RWMutexTakeR(m) RWMutexTake((m), (0))
-#define RWMutexTakeW(m) RWMutexTake((m), (1))
-#define RWMutexDropR(m) RWMutexDrop((m), (0))
-#define RWMutexDropW(m) RWMutexDrop((m), (1))
-
-// condition variables
-internal CondVar CondVarAlloc(void);
-internal void	 CondVarRelease(CondVar cv);
-// returns false on timeout, true on signal, (max_wait_ms = max_U64) -> no timeout
-internal B32 CondVarWait(CondVar cv, Mutex mutex, U64 endt_us);
-internal B32 CondVarWaitRW(CondVar cv, RWMutex mutex_rw, B32 write_mode, U64 endt_us);
-#define CondVarWaitRWR(cv, m, endt) CondVarWaitRW((cv), (m), (0), (endt))
-#define CondVarWaitRWW(cv, m, endt) CondVarWaitRW((cv), (m), (1), (endt))
-internal void CondVarSignal(CondVar cv);
-internal void CondVarBroadcast(CondVar cv);
-
-// cross-process semaphores
-internal Semaphore SemaphoreAlloc(U32 initial_count, U32 max_count, String8 name);
-internal void	   SemaphoreRelease(Semaphore semaphore);
-internal Semaphore SemaphoreOpen(String8 name);
-internal void	   SemaphoreClose(Semaphore semaphore);
-internal B32	   SemaphoreTake(Semaphore semaphore, U64 endt_us);
-internal void	   SemaphoreDrop(Semaphore semaphore);
-
-// barriers
-internal Barrier BarrierAlloc(U64 count);
-internal void	 BarrierRelease(Barrier barrier);
-internal void	 BarrierWait(Barrier barrier);
-
-// scope macros
-#define MutexScope(mutex) DeferLoop(MutexTake(mutex), MutexDrop(mutex))
-#define RWMutexScope(mutex, write_mode)                                                                                \
-	DeferLoop(RWMutexTake((mutex), (write_mode)), RWMutexDrop((mutex), (write_mode)))
-#define MutexScopeR(mutex) DeferLoop(RWMutexTakeR(mutex), RWMutexDropR(mutex))
-#define MutexScopeW(mutex) DeferLoop(RWMutexTakeW(mutex), RWMutexDropW(mutex))
-#define MutexScopeRWPromote(mutex)                                                                                     \
-	DeferLoop((RWMutexDropR(mutex), RWMutexTakeW(mutex)), (RWMutexDropW(mutex), RWMutexTakeR(mutex)))
-
-////////////////////////////////
-// Platform-Abstracted Synchronization Primitive Functions
-
-// slow barriers
-internal Barrier SlowBarrierAlloc(U64 count);
-internal void	 SlowBarrierRelease(Barrier barrier);
-internal void	 SlowBarrierWait(Barrier barrier);
-
-////////////////////////////////
-// @per_os_impl Safe Calls
-
-internal void SafeCall(ThreadEntryPointFunctionType *func, ThreadEntryPointFunctionType *fail_handler, void *ptr);
+// ---- Fence ----
+internal void Atomic_Fence(void);
 
 #endif // BASE_THREADS_H
