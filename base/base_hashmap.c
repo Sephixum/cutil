@@ -104,7 +104,7 @@ internal void MapReSlot(IMap* map, void* key, void* value)
 internal IMap MapAlloc(Arena* arena, U64 cap, U64 key_size, U64 value_size, map_hash_fn hash, map_equal_fn equal)
 {
 	cap			   = NextPowerOfTwo(cap);
-	MapSlot* slots = ArenaPushArray(arena, MapSlot, cap);
+	MapSlot* slots = Arena_PushArray(arena, MapSlot, cap);
 	MemoryZero(slots, sizeof(MapSlot) * cap);
 	return (IMap){
 		.data		= slots,
@@ -141,15 +141,15 @@ internal void MapInsert(Arena* arena, IMap* map, void* key, void* value)
 	}
 	if (!existing)
 	{
-		U8* new_value = ArenaPushArray(arena, U8, map->value_size);
+		U8* new_value = Arena_PushArray(arena, U8, map->value_size);
 		MemoryCopy(existing->value, value, map->value_size);
 		existing->value = new_value;
 		return;
 	}
 
 	// Allocate key+value storage
-	U8* key_storage	  = ArenaPushArray(arena, U8, map->key_size);
-	U8* value_storage = ArenaPushArray(arena, U8, map->value_size);
+	U8* key_storage	  = Arena_PushArray(arena, U8, map->key_size);
+	U8* value_storage = Arena_PushArray(arena, U8, map->value_size);
 	MemoryCopy(key_storage, key, map->key_size);
 	MemoryCopy(value_storage, value, map->value_size);
 
@@ -234,7 +234,7 @@ internal void MapResize(Arena* arena, IMap* map, U64 new_cap)
 	MapSlot* old_slots = map->data;
 	U64		 old_cap   = map->cap;
 
-	MapSlot* new_slots = ArenaPushArray(arena, MapSlot, new_cap);
+	MapSlot* new_slots = Arena_PushArray(arena, MapSlot, new_cap);
 	MemoryZero(new_slots, sizeof(MapSlot) * new_cap);
 
 	map->data	   = new_slots;

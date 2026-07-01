@@ -7,7 +7,7 @@
 #include "base_math.c"
 
 #if OS_LINUX
-#include "platform/linux/linux_base_impl.c"
+#include "platform/linux/base_impl.c"
 #elif OS_WINDOWS
-#include "platform/win32/win32_base_impl.c"
+#include "platform/win32/base_impl.c"
 #endif

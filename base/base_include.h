@@ -13,9 +13,9 @@
 #include "base_math.h"
 
 #if OS_LINUX
-#include "platform/linux/linux_base_impl.h"
+#include "platform/linux/base_include.h"
 #elif OS_WINDOWS
-#include "platform/win32/win32_base_impl.h"
+#include "platform/win32/base_include.h"
 #endif
 
 #endif // BASE_INCLUDE_H

@@ -111,7 +111,7 @@ internal void* Arena_Push(Arena* arena, U64 size, U64 align, B32 zero)
 				reserve_size = AlignPow2(size + ARENA_HEADER_SIZE, align);
 				commit_size	 = AlignPow2(size + ARENA_HEADER_SIZE, align);
 			}
-			new_block = Arena_Alloc(.reserve_size		  = reserve_size,
+			new_block = Arena_Make(.reserve_size		  = reserve_size,
 									.commit_size		  = commit_size,
 									.flags				  = current->flags,
 									.allocation_site_file = current->allocation_site_file,

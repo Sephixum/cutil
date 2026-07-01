@@ -229,7 +229,7 @@ internal String8 String8_Cat(Arena *arena, String8 s1, String8 s2)
 {
 	String8 str;
 	str.size = s1.size + s2.size;
-	str.str	 = ArenaPushArrayNoZero(arena, U8, str.size + 1);
+	str.str	 = Arena_PushArrayNoZero(arena, U8, str.size + 1);
 	memcpy(str.str, s1.str, s1.size);
 	memcpy(str.str + s1.size, s2.str, s2.size);
 	str.str[str.size] = 0;
@@ -240,7 +240,7 @@ internal String8 String8_Copy(Arena *arena, String8 s)
 {
 	String8 str;
 	str.size = s.size;
-	str.str	 = ArenaPushArrayNoZero(arena, U8, str.size + 1);
+	str.str	 = Arena_PushArrayNoZero(arena, U8, str.size + 1);
 	memcpy(str.str, s.str, s.size);
 	str.str[str.size] = 0;
 	return str;
@@ -252,7 +252,7 @@ internal String8 String8_Fv(Arena *arena, char *fmt, va_list args)
 	va_copy(args2, args);
 	U32		needed_bytes	= vsnprintf(0, 0, fmt, args) + 1;
 	String8 result			= {0};
-	result.str				= ArenaPushArrayNoZero(arena, U8, needed_bytes);
+	result.str				= Arena_PushArrayNoZero(arena, U8, needed_bytes);
 	result.size				= vsnprintf((char *)result.str, needed_bytes, fmt, args2);
 	result.str[result.size] = 0;
 	va_end(args2);
@@ -611,7 +611,7 @@ internal String8 String8_FromU64(Arena *arena, U64 u64, U32 radix, U8 min_digits
 				}
 			}
 			result.size				= prefix.size + needed_leading_0s + needed_separators + needed_digits;
-			result.str				= ArenaPushArrayNoZero(arena, U8, result.size + 1);
+			result.str				= Arena_PushArrayNoZero(arena, U8, result.size + 1);
 			result.str[result.size] = 0;
 		}
 
@@ -657,10 +657,10 @@ internal String8 String8_FromS64(Arena *arena, S64 s64, U32 radix, U8 min_digits
 	String8 result = {0};
 	if (s64 < 0)
 	{
-		Temp	scratch		 = ScratchBegin(&arena, 1);
+		Temp	scratch		 = Scratch_Begin(&arena, 1);
 		String8 numeric_part = String8_FromU64(scratch.arena, (U64)(-s64), radix, min_digits, digit_group_separator);
 		result				 = Arena_PushString8_F(arena, "-%S", numeric_part);
-		ScratchEnd(scratch);
+		Scratch_End(scratch);
 	}
 	else
 	{
@@ -671,7 +671,7 @@ internal String8 String8_FromS64(Arena *arena, S64 s64, U32 radix, U8 min_digits
 
 internal String8 String8_FromF64(Arena *arena, F64 x)
 {
-	U8 *buf	 = ArenaPushArray(arena, U8, 64);
+	U8 *buf	 = Arena_PushArray(arena, U8, 64);
 	U64 size = snprintf((char *)buf, 64, "%f", x);
 	return String8_Make(buf, size);
 }
@@ -754,14 +754,14 @@ internal String8Node *String8List_PushNodeFrontSetString(String8List *list, Stri
 
 internal String8Node *String8List_Push(Arena *arena, String8List *list, String8 string)
 {
-	String8Node *node = ArenaPushArrayNoZero(arena, String8Node, 1);
+	String8Node *node = Arena_PushArrayNoZero(arena, String8Node, 1);
 	String8List_PushNodeFrontSetString(list, node, string);
 	return node;
 }
 
 internal String8Node *String8List_PushFront(Arena *arena, String8List *list, String8 string)
 {
-	String8Node *node = ArenaPushArrayNoZero(arena, String8Node, 1);
+	String8Node *node = Arena_PushArrayNoZero(arena, String8Node, 1);
 	String8List_PushNodeFrontSetString(list, node, string);
 	return node;
 }
@@ -796,7 +796,7 @@ internal String8Node *String8List_PushAligner(Arena *arena, String8List *list, U
 	}
 	else
 	{
-		return String8List_Push(arena, list, String8_Make(ArenaPushArray(arena, U8, pad), pad));
+		return String8List_Push(arena, list, String8_Make(Arena_PushArray(arena, U8, pad), pad));
 	}
 }
 
@@ -839,7 +839,7 @@ internal String8List String8List_Copy(Arena *arena, String8List *list)
 	String8List result = {0};
 	for (String8Node *node = list->first; node != 0; node = node->next)
 	{
-		String8Node *new_node	= ArenaPushArrayNoZero(arena, String8Node, 1);
+		String8Node *new_node	= Arena_PushArrayNoZero(arena, String8Node, 1);
 		String8		 new_string = Arena_PushString8_Copy(arena, node->string);
 		String8List_PushNodeSetString(&result, new_node, new_string);
 	}
@@ -1098,7 +1098,7 @@ internal String8Array String8Array_FromList(Arena *arena, String8List *list)
 {
 	String8Array array;
 	array.count = list->node_count;
-	array.v		= ArenaPushArrayNoZero(arena, String8, array.count);
+	array.v		= Arena_PushArrayNoZero(arena, String8, array.count);
 	U64 idx		= 0;
 	for (String8Node *n = list->first; n != 0; n = n->next, idx += 1)
 	{
@@ -1110,7 +1110,7 @@ internal String8Array String8Array_FromList(Arena *arena, String8List *list)
 internal String8Array String8Array_Reserve(Arena *arena, U64 count)
 {
 	String8Array arr = {0};
-	arr.v			 = ArenaPushArray(arena, String8, count);
+	arr.v			 = Arena_PushArray(arena, String8, count);
 	return arr;
 }
 
@@ -1118,7 +1118,7 @@ internal String8Array String8Array_Copy(Arena *arena, String8Array array)
 {
 	String8Array result = {0};
 	result.count		= array.count;
-	result.v			= ArenaPushArray(arena, String8, result.count);
+	result.v			= Arena_PushArray(arena, String8, result.count);
   for
 	  EachIndex(idx, result.count)
 	  {

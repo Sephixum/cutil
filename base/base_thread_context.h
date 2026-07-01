@@ -4,10 +4,12 @@
 #include "base_arena.h"
 #include "base_string.h"
 #include "base_typedefs.h"
+#include "base_threads.h"
 
 typedef struct ThreadContext ThreadContext;
 struct ThreadContext
 {
+	Thread thread;
 	Arena* scratch_pool[2];
 
 	U8	thread_name[32];
@@ -23,7 +25,7 @@ internal ThreadContext* ThreadContext_Selected(void);
 internal String8		ThreadContext_SelectedName(void);
 
 internal Arena* ThreadContext_GetArenaScratch(Arena** conflicts, U64 count);
-#define Scratch_Begin(conflicts, count) Arena_TempBegin(ThreadContextGetArenaScratch((conflicts), (count)))
+#define Scratch_Begin(conflicts, count) Arena_TempBegin(ThreadContext_GetArenaScratch((conflicts), (count)))
 #define Scratch_End(scratch) Arena_TempEnd(scratch)
 
 #endif // BASE_THREAD_CONTEXT_H

@@ -146,6 +146,8 @@ union U512
 	F64	 f64[8];
 };
 
+typedef uintptr_t UPtr;
+
 ////////////////////////////////
 // Toolchain/Environment Enums
 

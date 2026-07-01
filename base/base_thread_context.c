@@ -1,6 +1,7 @@
 #include "base_thread_context.h"
 #include "base_arena.h"
 #include "base_core.h"
+#include "base_string.h"
 #include "base_typedefs.h"
 #include <threads.h>
 
@@ -16,7 +17,7 @@ internal ThreadContext* ThreadContext_Make(void)
 	return tctx;
 }
 
-internal void ThreadContextRelease(ThreadContext* tctx)
+internal void ThreadContext_Destroy(ThreadContext* tctx)
 {
 	Arena_Destroy(tctx->scratch_pool[1]);
 	Arena_Destroy(tctx->scratch_pool[0]);
@@ -40,7 +41,16 @@ internal String8 ThreadContext_GetName(ThreadContext* tctx)
 
 internal ThreadContext* ThreadContext_Selected(void)
 {
-	return tctx_thread_local;
+	if (tctx_thread_local != 0)
+	{
+		return tctx_thread_local;
+	}
+
+	tctx_thread_local = ThreadContext_Make();
+	ThreadContext_SetName(tctx_thread_local, String8_Lit("Main"));
+	ThreadContext_Select(tctx_thread_local);
+
+    return tctx_thread_local;
 }
 
 internal String8 ThreadContext_SelectedName(void)
